@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="손글씨로 질문을 쓰고 Google에서 검색하세요. 펜으로 쓰면 바로 검색됩니다." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>HandWrite Search — 손글씨 검색</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="app-header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">✏️</span>
+          <h1>HandWrite Search</h1>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="btn-history" class="header-btn" title="검색 기록">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 0 0 17.49-3"/></svg>
+        </button>
+        <button id="btn-settings" class="header-btn" title="설정">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Search Results Area -->
+    <main id="search-area">
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon">🖊️</div>
+        <p class="empty-title">손글씨로 검색하세요</p>
+        <p class="empty-subtitle">아래 캔버스에 질문을 쓰면<br/>Google에서 검색합니다</p>
+      </div>
+      <div id="search-results" class="search-results hidden">
+        <div id="search-results-header" class="search-results-header">
+          <span id="search-query-display" class="search-query-display"></span>
+          <button id="btn-close-results" class="icon-btn" title="닫기">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <iframe id="search-iframe" class="search-iframe" sandbox="allow-scripts allow-same-origin allow-popups allow-forms" referrerpolicy="no-referrer"></iframe>
+      </div>
+    </main>
+
+    <!-- Recognition Result Bar -->
+    <div id="recognition-bar" class="recognition-bar">
+      <div class="recognition-content">
+        <div id="recognition-status" class="recognition-status">
+          <span class="status-dot"></span>
+          <span class="status-text">캔버스에 질문을 써 주세요</span>
+        </div>
+        <div id="recognition-result" class="recognition-result hidden">
+          <input type="text" id="recognized-text" class="recognized-text-input" placeholder="인식된 텍스트..." />
+          <button id="btn-search" class="btn-search" title="Google 검색">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span>검색</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas Area -->
+    <div id="canvas-area" class="canvas-area">
+      <canvas id="ink-canvas"></canvas>
+      <div id="canvas-guides" class="canvas-guides"></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div id="toolbar" class="toolbar">
+      <button id="btn-undo" class="tool-btn" title="되돌리기" disabled>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h10a5 5 0 0 1 0 10H13"/><path d="M3 10l4-4M3 10l4 4"/></svg>
+        <span class="tool-label">되돌리기</span>
+      </button>
+      <button id="btn-redo" class="tool-btn" title="다시 실행" disabled>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10H11a5 5 0 0 0 0 10h2"/><path d="M21 10l-4-4M21 10l-4 4"/></svg>
+        <span class="tool-label">다시</span>
+      </button>
+      <div class="tool-divider"></div>
+      <button id="btn-eraser" class="tool-btn" title="지우개">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20H7L3 16l9-9 8 8-4 4z"/><path d="M6.5 13.5L12 8"/></svg>
+        <span class="tool-label">지우개</span>
+      </button>
+      <button id="btn-clear" class="tool-btn" title="전체 삭제">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
+        <span class="tool-label">삭제</span>
+      </button>
+      <div class="tool-divider"></div>
+      <button id="btn-recognize" class="tool-btn tool-btn-primary" title="인식">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg>
+        <span class="tool-label">인식</span>
+      </button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h2>설정</h2>
+          <button id="btn-close-settings" class="icon-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-group">
+            <label class="setting-label">Google Cloud Vision API 키</label>
+            <input type="password" id="setting-api-key" class="setting-input" placeholder="API 키를 입력하세요..." />
+            <p class="setting-hint">Google Cloud Console에서 발급한 Vision API 키</p>
+          </div>
+          <div class="setting-group">
+            <label class="setting-label">입력 방식</label>
+            <select id="setting-input-mode" class="setting-select">
+              <option value="pen">Apple Pencil / 스타일러스만</option>
+              <option value="all" selected>펜 + 손가락 터치</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label class="setting-label">펜 굵기</label>
+            <input type="range" id="setting-pen-size" class="setting-range" min="1" max="8" value="3" />
+          </div>
+          <div class="setting-group">
+            <label class="setting-label">잉크 색상</label>
+            <div class="color-picker">
+              <button class="color-swatch active" data-color="#E8EAED" style="background:#E8EAED"></button>
+              <button class="color-swatch" data-color="#8AB4F8" style="background:#8AB4F8"></button>
+              <button class="color-swatch" data-color="#81C995" style="background:#81C995"></button>
+              <button class="color-swatch" data-color="#FDD663" style="background:#FDD663"></button>
+              <button class="color-swatch" data-color="#F28B82" style="background:#F28B82"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="modal-overlay hidden">
+      <div class="modal-content glass-panel">
+        <div class="modal-header">
+          <h2>검색 기록</h2>
+          <button id="btn-close-history" class="icon-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <ul id="history-list" class="history-list">
+            <li class="history-empty">아직 검색 기록이 없습니다</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

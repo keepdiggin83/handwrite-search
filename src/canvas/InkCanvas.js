@@ -25,6 +25,7 @@ export class InkCanvas {
     this.baseLineWidth = options.baseLineWidth || 3;
     this.inputMode = options.inputMode || 'all'; // 'pen' | 'all'
     this.eraserMode = false;
+    this._autoRecognizeDelay = options.autoRecognizeDelay || 700; // ms
 
     // Current stroke state
     this._currentStroke = [];
@@ -215,7 +216,7 @@ export class InkCanvas {
     clearTimeout(this._recognizeTimer);
     this._recognizeTimer = setTimeout(() => {
       this._onReadyToRecognize?.();
-    }, AUTO_RECOGNIZE_DELAY);
+    }, this._autoRecognizeDelay);
   }
 
   /** 모든 획 다시 그리기 */

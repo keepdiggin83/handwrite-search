@@ -19,6 +19,7 @@ const state = {
   inputMode: localStorage.getItem('handwrite-input-mode') || 'all',
   inkColor: localStorage.getItem('handwrite-ink-color') || '#E8EAED',
   penSize: parseInt(localStorage.getItem('handwrite-pen-size') || '3', 10),
+  _recognitionSeq: 0, // 인식 요청 순번 (오래된 응답 무시용)
 };
 
 // --- DOM Elements ---
@@ -77,6 +78,7 @@ const inkCanvas = new InkCanvas(elements.canvas, {
   inkColor: state.inkColor,
   baseLineWidth: state.penSize,
   inputMode: state.inputMode,
+  autoRecognizeDelay: 1200, // 700ms -> 1200ms: 문장 완성 후 인식되도록 여유 확보
 });
 
 
@@ -266,14 +268,18 @@ function renderHistory() {
 
 // --- Core Functions ---
 
+
 async function doRecognize() {
   if (!inkCanvas.hasStrokes()) return;
+
+  // 요청마다 고유 순번 부여 — 응답이 돌아올 때 최신 요청인지 확인
+  const seq = ++state._recognitionSeq;
 
   setPhase('recognizing');
 
   try {
     if (!state.apiKey) {
-      // API 키 없으면 인식 결과 없이 수동 입력 모드
+      if (seq !== state._recognitionSeq) return;
       setPhase('reviewing');
       elements.recognizedText.value = '';
       elements.recognizedText.placeholder = 'API 키가 없습니다. 검색어를 직접 입력하세요...';
@@ -283,6 +289,12 @@ async function doRecognize() {
 
     const imageDataUrl = inkCanvas.toDataURL();
     const result = await recognizeHandwriting(imageDataUrl, state.apiKey);
+
+    // 응답 도착 시 더 새로운 요청이 있으면 이 결과는 무시 (race condition 방지)
+    if (seq !== state._recognitionSeq) {
+      console.log(`[인식] 오래된 응답 무시 (seq=${seq}, 현재=${state._recognitionSeq})`);
+      return;
+    }
 
     if (result && result.text) {
       elements.recognizedText.value = result.text;
@@ -295,8 +307,9 @@ async function doRecognize() {
     }
   } catch (error) {
     console.error('Recognition error:', error);
-    elements.recognizedText.value = '';
+    if (seq !== state._recognitionSeq) return; // 오래된 오류도 무시
 
+    elements.recognizedText.value = '';
     if (error.message.includes('API key')) {
       elements.recognizedText.placeholder = 'API 키가 유효하지 않습니다. 설정을 확인하세요.';
     } else {
@@ -307,6 +320,7 @@ async function doRecognize() {
     setStatusError();
   }
 }
+
 
 function doSearch() {
   const query = elements.recognizedText.value.trim();

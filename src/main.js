@@ -61,6 +61,7 @@ const elements = {
   settingsModal: $('#settings-modal'),
   btnCloseSettings: $('#btn-close-settings'),
   settingApiKey: $('#setting-api-key'),
+  btnFillApiKey: $('#btn-fill-api-key'),
   settingInputMode: $('#setting-input-mode'),
   settingPenSize: $('#setting-pen-size'),
   colorSwatches: document.querySelectorAll('.color-swatch'),
@@ -172,6 +173,17 @@ elements.settingsModal.addEventListener('click', (e) => {
 elements.settingApiKey.addEventListener('change', (e) => {
   state.apiKey = e.target.value.trim();
   localStorage.setItem('handwrite-api-key', state.apiKey);
+});
+
+// * 버튼: 저장된 API 키 자동 입력
+elements.btnFillApiKey.addEventListener('click', () => {
+  const PRESET_KEY = 'AIzaSyByAoINk9JgItndIBDi1Zy7ETy06u3rmhI';
+  elements.settingApiKey.value = PRESET_KEY;
+  state.apiKey = PRESET_KEY;
+  localStorage.setItem('handwrite-api-key', PRESET_KEY);
+  // 입력 완료 시각적 피드백
+  elements.btnFillApiKey.classList.add('filled');
+  setTimeout(() => elements.btnFillApiKey.classList.remove('filled'), 1500);
 });
 
 elements.settingInputMode.addEventListener('change', (e) => {

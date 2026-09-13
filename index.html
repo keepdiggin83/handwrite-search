@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <script type="module" crossorigin src="/handwrite-search/assets/index-D_PH8YjG.js"></script>
-  <link rel="stylesheet" crossorigin href="/handwrite-search/assets/index-CCXqr2gW.css">
+  <script type="module" crossorigin src="/handwrite-search/assets/index-CPVf4fzI.js"></script>
+  <link rel="stylesheet" crossorigin href="/handwrite-search/assets/index-D39Uz2CW.css">
 </head>
 <body>
   <div id="app">
@@ -112,7 +112,10 @@
         <div class="modal-body">
           <div class="setting-group">
             <label class="setting-label">Google Cloud Vision API 키</label>
-            <input type="password" id="setting-api-key" class="setting-input" placeholder="API 키를 입력하세요..." />
+            <div class="setting-input-row">
+              <input type="password" id="setting-api-key" class="setting-input" placeholder="API 키를 입력하세요..." />
+              <button id="btn-fill-api-key" class="btn-fill-key" title="저장된 API 키 자동 입력">✱</button>
+            </div>
             <p class="setting-hint">Google Cloud Console에서 발급한 Vision API 키</p>
           </div>
           <div class="setting-group">
